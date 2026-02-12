@@ -4,10 +4,11 @@ import React, { useState } from "react";
 
 interface TestCaseGeneratorProps {
     type: "array" | "graph";
+    algo: string;
     onGenerate: (codeSnippet: string) => void;
 }
 
-const TestCaseGenerator: React.FC<TestCaseGeneratorProps> = ({ type, onGenerate }) => {
+const TestCaseGenerator: React.FC<TestCaseGeneratorProps> = ({ type, algo, onGenerate }) => {
     // Array State
     const [arraySize, setArraySize] = useState(10);
     const [arrayType, setArrayType] = useState<"sorted" | "random">("sorted");
@@ -70,7 +71,7 @@ print(f"Index of {target}: {result}")
         }
         graphStr += "}";
 
-        const funcCall = type === 'graph' ? "dfs(graph, 'A', set())" : "bfs(graph, 'A')";
+        const funcCall = algo === 'DFS (Graph)' ? "dfs(graph, 'A', set())" : "bfs(graph, 'A')";
         const code = `
 # Generated Graph (Nodes: ${size})
 graph = ${graphStr}

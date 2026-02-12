@@ -166,6 +166,7 @@ export default function Home() {
           </div>
           <TestCaseGenerator
             type={selectedAlgo === "Binary Search" ? "array" : "graph"}
+            algo={selectedAlgo}
             onGenerate={handleTestCaseGenerate}
           />
         </div>
