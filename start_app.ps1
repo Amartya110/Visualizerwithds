@@ -1,5 +1,5 @@
-$frontend = Start-Process powershell -ArgumentList "cd frontend; npm run dev" -PassThru
-$backend = Start-Process powershell -ArgumentList "uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload" -PassThru
+$Start-Process -FilePath "npm" -ArgumentList "run dev" -NoNewWindow
+Start-Process -FilePath "uvicorn" -ArgumentList "backend.main:app --reload --port 8000" -NoNewWindowad" -PassThru
 Write-Host "CodeHurdle Visualizer Started!"
 Write-Host "Frontend: http://localhost:3000"
 Write-Host "Backend: http://localhost:8000"
