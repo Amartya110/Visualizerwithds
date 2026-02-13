@@ -88,9 +88,10 @@ export default function Home() {
         setTraces(response.data.results[0].trace);
         setIsPlaying(true);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error executing code:", error);
-      alert("Error executing code. Check console.");
+      const startMessage = error.response?.data?.detail || error.message || "Unknown error";
+      alert(`Execution Error: ${startMessage}`);
     } finally {
       setIsLoading(false);
     }
