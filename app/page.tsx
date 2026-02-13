@@ -151,14 +151,14 @@ export default function Home() {
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 overflow-hidden">
 
         {/* Left Panel: Code Editor */}
-        <div className="h-full border-r border-border/40 bg-card/30 flex flex-col">
-          <div className="p-3 border-b border-border/40 bg-muted/20 flex justify-between items-center">
+        <div className="h-full border-r border-border/40 bg-card/30 flex flex-col overflow-y-auto custom-scrollbar">
+          <div className="p-3 border-b border-border/40 bg-muted/20 flex justify-between items-center sticky top-0 bg-background/95 backdrop-blur z-10">
             <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-blue-500" /> Editor
             </h2>
             <span className="text-xs text-muted-foreground">{selectedAlgo}</span>
           </div>
-          <div className="flex-1 p-0 overflow-hidden relative">
+          <div className="flex-1 p-0 overflow-hidden relative min-h-[400px]">
             <CodeEditor
               initialCode={code}
               language="python"

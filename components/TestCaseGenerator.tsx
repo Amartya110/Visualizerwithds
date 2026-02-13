@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Braces, Network, Sparkles, AlertCircle } from "lucide-react";
 
 interface TestCaseGeneratorProps {
     type: "array" | "graph";
@@ -45,7 +46,6 @@ print(f"Index of {target}: {result}")
         nodes.forEach(n => adj[n] = []);
 
         // Create a random connected graph (spanning tree + extra edges)
-        // 1. Spanning tree to ensure connectivity (mostly)
         for (let i = 1; i < size; i++) {
             const parent = nodes[Math.floor(Math.random() * i)];
             const child = nodes[i];
@@ -53,7 +53,6 @@ print(f"Index of {target}: {result}")
             if (!isDirected) adj[child].push(parent);
         }
 
-        // 2. Extra edges
         const extraEdges = Math.floor(size * 0.5);
         for (let i = 0; i < extraEdges; i++) {
             const u = nodes[Math.floor(Math.random() * size)];
@@ -64,7 +63,6 @@ print(f"Index of {target}: {result}")
             }
         }
 
-        // Format as Python dictionary string
         let graphStr = "{\n";
         for (const [node, neighbors] of Object.entries(adj)) {
             graphStr += `    '${node}': ${JSON.stringify(neighbors)},\n`;
@@ -80,27 +78,42 @@ ${funcCall}
         onGenerate(code);
     };
 
-    if (type === "array") {
-        return (
-            <div className="p-4 bg-card/30 border-t border-border/40 space-y-3">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Generate Test Case</h3>
-                <div className="flex gap-4 items-center">
-                    <div className="flex flex-col gap-1">
-                        <label className="text-[10px] text-muted-foreground">Size (Max 20)</label>
+    return (
+        <div className="bg-card/40 border-t border-border/60 p-5 space-y-4 shadow-[0_-5px_20px_-10px_rgba(0,0,0,0.1)]">
+            <div className="flex items-center gap-2 mb-2">
+                {type === "array" ? (
+                    <div className="p-1.5 bg-blue-500/10 rounded-md">
+                        <Braces className="w-4 h-4 text-blue-500" />
+                    </div>
+                ) : (
+                    <div className="p-1.5 bg-purple-500/10 rounded-md">
+                        <Network className="w-4 h-4 text-purple-500" />
+                    </div>
+                )}
+                <h3 className="text-sm font-semibold text-foreground tracking-tight">Test Case Generator</h3>
+                <div className="ml-auto px-2 py-0.5 bg-secondary rounded text-[10px] font-mono text-muted-foreground border border-border/50">
+                    Auto-Insert
+                </div>
+            </div>
+
+            {type === "array" ? (
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Array Size</label>
                         <input
                             type="number"
                             min="1" max="20"
                             value={arraySize}
                             onChange={e => setArraySize(parseInt(e.target.value))}
-                            className="w-16 bg-background border border-border rounded px-2 py-1 text-xs"
+                            className="w-full bg-background/50 border border-border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
                         />
                     </div>
-                    <div className="flex flex-col gap-1">
-                        <label className="text-[10px] text-muted-foreground">Type</label>
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Type</label>
                         <select
                             value={arrayType}
                             onChange={(e: any) => setArrayType(e.target.value)}
-                            className="bg-background border border-border rounded px-2 py-1 text-xs"
+                            className="w-full bg-background/50 border border-border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all appearance-none cursor-pointer hover:bg-background"
                         >
                             <option value="sorted">Sorted</option>
                             <option value="random">Random</option>
@@ -108,45 +121,44 @@ ${funcCall}
                     </div>
                     <button
                         onClick={generateArray}
-                        className="mt-auto px-3 py-1 bg-secondary hover:bg-secondary/80 text-xs rounded border border-border transition-colors"
+                        className="col-span-2 flex items-center justify-center gap-2 px-4 py-2 mt-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-xs font-semibold rounded-md shadow-md shadow-blue-500/10 transition-all active:scale-95"
                     >
-                        Generate
+                        <Sparkles className="w-3.5 h-3.5" />
+                        Generate Array
                     </button>
                 </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="p-4 bg-card/30 border-t border-border/40 space-y-3">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Generate Graph</h3>
-            <div className="flex gap-4 items-center">
-                <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-muted-foreground">Nodes (Max 20)</label>
-                    <input
-                        type="number"
-                        min="2" max="20"
-                        value={nodeCount}
-                        onChange={e => setNodeCount(parseInt(e.target.value))}
-                        className="w-16 bg-background border border-border rounded px-2 py-1 text-xs"
-                    />
-                </div>
-                <div className="flex flex-col gap-1">
-                    <label className="text-[10px] text-muted-foreground">Type</label>
-                    <div className="flex items-center gap-2 h-[26px]">
-                        <label className="text-xs flex items-center gap-1 cursor-pointer">
-                            <input type="checkbox" checked={isDirected} onChange={e => setIsDirected(e.target.checked)} />
-                            Directed
+            ) : (
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Node Count</label>
+                        <input
+                            type="number"
+                            min="2" max="20"
+                            value={nodeCount}
+                            onChange={e => setNodeCount(parseInt(e.target.value))}
+                            className="w-full bg-background/50 border border-border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+                        />
+                    </div>
+                    <div className="space-y-1.5 flex flex-col justify-end">
+                        <label className="flex items-center gap-2 cursor-pointer p-1.5 rounded-md hover:bg-secondary/50 transition-colors border border-transparent hover:border-border/50">
+                            <input
+                                type="checkbox"
+                                checked={isDirected}
+                                onChange={e => setIsDirected(e.target.checked)}
+                                className="accent-primary w-3.5 h-3.5"
+                            />
+                            <span className="text-xs font-medium text-foreground">Directed Graph</span>
                         </label>
                     </div>
+                    <button
+                        onClick={generateGraph}
+                        className="col-span-2 flex items-center justify-center gap-2 px-4 py-2 mt-1 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white text-xs font-semibold rounded-md shadow-md shadow-purple-500/10 transition-all active:scale-95"
+                    >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        Generate Graph
+                    </button>
                 </div>
-                <button
-                    onClick={generateGraph}
-                    className="mt-auto px-3 py-1 bg-secondary hover:bg-secondary/80 text-xs rounded border border-border transition-colors"
-                >
-                    Generate
-                </button>
-            </div>
+            )}
         </div>
     );
 };
