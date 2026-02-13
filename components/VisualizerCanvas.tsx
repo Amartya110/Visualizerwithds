@@ -20,80 +20,184 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({ traceStep }) => {
     const { line, locals, event, func_name } = traceStep;
 
     // --- Heuristics to detect visualization mode ---
-    const isBinarySearch = locals && locals.arr && (locals.left !== undefined || locals.low !== undefined);
+    const isBinarySearch = locals && (locals.arr || locals.weights || locals.prefix || locals.suffix || locals.psum);
     const isGraphAlgo = locals && locals.graph;
 
     // --- Array Visualization (Binary Search) ---
     const renderArrayVisualization = () => {
-        const arr = locals.arr || [];
-        const left = locals.left ?? locals.low;
-        const right = locals.right ?? locals.high;
+        // Detect arrays to visualize
+        const candidates = [
+            { key: 'arr', label: 'Input Array' },
+            { key: 'weights', label: 'Weights' },
+            { key: 'prefix', label: 'Prefix Sum' },
+            { key: 'suffix', label: 'Suffix Sum' },
+            { key: 'psum', label: 'Prefix Sum' }
+        ];
+
+        // Helper to parse if string
+        const parseArray = (val: any) => {
+            if (Array.isArray(val)) return val;
+            if (typeof val === 'string') {
+                try {
+                    const parsed = JSON.parse(val);
+                    if (Array.isArray(parsed)) return parsed;
+                } catch (e) { }
+            }
+            return null;
+        };
+
+        const arraysToRender = candidates
+            .map(c => ({ ...c, data: parseArray(locals[c.key]) }))
+            .filter(c => c.data !== null);
+
+        // Common pointers
+        const left = locals.left ?? locals.low ?? locals.L;
+        const right = locals.right ?? locals.high ?? locals.R;
         const mid = locals.mid;
         const target = locals.target;
+        const ans = locals.ans ?? locals.min_capacity;
+
+        // Special Case: Binary Search on Answer (Search Space is NOT the array indices)
+        // If we have 'weights' and 'days', we are likely in BS Answer.
+        // We want to visualize the NUMBER LINE for [left, right] if they exist.
+        const isBSAnswer = locals.weights && locals.days !== undefined && left !== undefined && right !== undefined;
+
+        // If no arrays found and not BS Answer, return null
+        if (arraysToRender.length === 0 && !isBSAnswer) return null;
 
         return (
             <div className="flex flex-col gap-6 items-center p-4 bg-card/40 rounded-xl border border-border/50 shadow-sm w-full overflow-x-auto custom-scrollbar">
-                <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Binary Search Visualization</span>
+                <div className="flex items-center gap-2 mb-2 sticky left-0">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {isBSAnswer ? "Binary Search on Answer" : "Array Visualization"}
+                    </span>
                     {target !== undefined && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20">Target: {target}</span>}
+                    {ans !== undefined && <span className="text-xs bg-green-500/10 text-green-500 px-2 py-0.5 rounded border border-green-500/20">Ans: {ans}</span>}
                 </div>
 
-                <div className="flex gap-1 relative pt-8 pb-8 px-4">
-                    {arr.map((val: number, idx: number) => {
-                        const inRange = (left !== undefined && right !== undefined) ? (idx >= left && idx <= right) : true;
-                        const isMid = idx === mid;
-                        const isFound = val === target && isMid; // Simplified check
-
-                        return (
-                            <div key={idx} className="flex flex-col items-center gap-1 relative group">
-                                {/* Value Box */}
+                {/* BS Answer Search Space Visualization */}
+                {isBSAnswer && (
+                    <div className="flex flex-col items-center gap-2 w-full px-8 py-4 bg-background/50 rounded-lg border border-border/50 mb-4">
+                        <span className="text-[10px] uppercase font-bold text-muted-foreground">Search Space (Capacity)</span>
+                        <div className="relative w-full h-12 flex items-center">
+                            {/* Number Line Track */}
+                            <div className="w-full h-1 bg-border rounded-full relative">
+                                {/* Range Highlight */}
                                 <motion.div
+                                    className="absolute h-full bg-blue-500/30"
                                     layout
                                     initial={false}
                                     animate={{
-                                        scale: isMid ? 1.1 : 1,
-                                        backgroundColor: isFound ? "rgba(34, 197, 94, 0.2)" : isMid ? "rgba(59, 130, 246, 0.2)" : inRange ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.02)",
-                                        borderColor: isFound ? "rgb(34, 197, 94)" : isMid ? "rgb(59, 130, 246)" : inRange ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.1)",
-                                        opacity: inRange ? 1 : 0.4
+                                        left: "0%",
+                                        width: "100%"
+                                        // Logic is tricky without fixed scale. 
+                                        // Simplified: Just show L, R, Mid textually on a bar? 
+                                        // Or just show 3 labeled points if range is huge.
                                     }}
-                                    className={`w-10 h-10 flex items-center justify-center rounded border-2 text-sm font-bold font-mono transition-colors border-border text-primary-foreground`}
-                                >
-                                    {val}
-                                </motion.div>
+                                />
+                            </div>
 
-                                {/* Index */}
-                                <span className={`text-[10px] font-mono ${inRange ? "text-muted-foreground" : "text-muted-foreground/30"}`}>{idx}</span>
-
-                                {/* Pointers */}
-                                <div className="absolute -top-6 w-full flex justify-center h-4">
-                                    {idx === left && (
-                                        <motion.div layoutId="pointer-left" className="text-[10px] font-bold text-yellow-500 flex flex-col items-center absolute bottom-0">
-                                            <span className="leading-none mb-0.5">L</span>
-                                            <div className="w-0.5 h-2 bg-yellow-500 rounded-full" />
-                                        </motion.div>
-                                    )}
-                                    {idx === right && idx !== left && (
-                                        <motion.div layoutId="pointer-right" className="text-[10px] font-bold text-yellow-500 flex flex-col items-center absolute bottom-0">
-                                            <span className="leading-none mb-0.5">R</span>
-                                            <div className="w-0.5 h-2 bg-yellow-500 rounded-full" />
-                                        </motion.div>
-                                    )}
-                                    {/* Combined L/R if equal */}
-                                    {idx === right && idx === left && (
-                                        <motion.div layoutId="pointer-lr" className="text-[10px] font-bold text-yellow-500 flex flex-col items-center absolute bottom-0">
-                                            <span className="leading-none mb-0.5">L/R</span>
-                                            <div className="w-0.5 h-2 bg-yellow-500 rounded-full" />
-                                        </motion.div>
-                                    )}
+                            {/* Pointers on the abstract line */}
+                            <div className="flex justify-between w-full absolute top-0 text-xs font-mono">
+                                <div className="flex flex-col items-center -ml-3">
+                                    <span className="mb-1 text-yellow-500 font-bold">L</span>
+                                    <span className="text-foreground">{left}</span>
                                 </div>
 
-                                <div className="absolute -bottom-8 w-full flex justify-center h-4">
-                                    {idx === mid && (
-                                        <motion.div layoutId="pointer-mid" className="text-xs font-bold text-blue-500 flex flex-col items-center absolute top-0">
-                                            <ArrowUp className="w-4 h-4" />
-                                            <span className="leading-none">mid</span>
-                                        </motion.div>
-                                    )}
+                                {mid !== undefined && (
+                                    <div className="flex flex-col items-center absolute left-1/2 -translate-x-1/2">
+                                        <span className="mb-1 text-blue-500 font-bold">Mid</span>
+                                        <span className="text-foreground">{mid}</span>
+                                    </div>
+                                )}
+
+                                <div className="flex flex-col items-center -mr-3">
+                                    <span className="mb-1 text-yellow-500 font-bold">R</span>
+                                    <span className="text-foreground">{right}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className="flex flex-col gap-8 w-full">
+                    {arraysToRender.map((config, rowIdx) => {
+                        const arr = config.data;
+                        // For BS Answer, we don't show L/R pointers on the 'weights' array 
+                        // because L/R refer to capacity, not index.
+                        const showPointers = !isBSAnswer;
+
+                        return (
+                            <div key={config.key} className="flex flex-col gap-2 relative px-4">
+                                <span className="text-[10px] uppercase font-bold text-muted-foreground sticky left-4">{config.label}</span>
+                                <div className="flex gap-1">
+                                    {arr.map((val: any, idx: number) => {
+                                        // Pointers logic 
+                                        const isLeft = showPointers && idx === left;
+                                        const isRight = showPointers && idx === right;
+                                        const isMid = showPointers && idx === mid;
+
+                                        // Highlight logic
+                                        const inRange = showPointers ? ((left !== undefined && right !== undefined) ? (idx >= left && idx <= right) : true) : true;
+                                        const isFound = val === target && (isMid || (!mid && inRange));
+
+                                        return (
+                                            <div key={idx} className="flex flex-col items-center gap-1 relative group min-w-[40px]">
+                                                {/* Value Box */}
+                                                <motion.div
+                                                    layout
+                                                    initial={false}
+                                                    animate={{
+                                                        scale: isMid ? 1.1 : 1,
+                                                        backgroundColor: isFound ? "rgba(34, 197, 94, 0.6)" : isMid ? "rgba(59, 130, 246, 0.6)" : inRange ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.3)",
+                                                        borderColor: isFound ? "rgb(34, 197, 94)" : isMid ? "rgb(59, 130, 246)" : inRange ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.1)",
+                                                        opacity: inRange ? 1 : 0.4
+                                                    }}
+                                                    className={`w-10 h-10 flex items-center justify-center rounded border-2 text-sm font-bold font-mono transition-colors border-border text-white shadow-sm font-bold`}
+                                                >
+                                                    {val}
+                                                </motion.div>
+
+                                                {/* Index */}
+                                                <span className={`text-[10px] font-mono ${inRange ? "text-muted-foreground" : "text-muted-foreground/30"}`}>{idx}</span>
+
+                                                {/* Pointers */}
+                                                {showPointers && (
+                                                    <>
+                                                        <div className="absolute -top-6 w-full flex justify-center h-4">
+                                                            {isLeft && (
+                                                                <motion.div layoutId={`pointer-left-${rowIdx}`} className="text-[10px] font-bold text-yellow-500 flex flex-col items-center absolute bottom-0">
+                                                                    <span className="leading-none mb-0.5">L</span>
+                                                                    <div className="w-0.5 h-2 bg-yellow-500 rounded-full" />
+                                                                </motion.div>
+                                                            )}
+                                                            {isRight && !isLeft && (
+                                                                <motion.div layoutId={`pointer-right-${rowIdx}`} className="text-[10px] font-bold text-yellow-500 flex flex-col items-center absolute bottom-0">
+                                                                    <span className="leading-none mb-0.5">R</span>
+                                                                    <div className="w-0.5 h-2 bg-yellow-500 rounded-full" />
+                                                                </motion.div>
+                                                            )}
+                                                            {isRight && isLeft && (
+                                                                <motion.div layoutId={`pointer-lr-${rowIdx}`} className="text-[10px] font-bold text-yellow-500 flex flex-col items-center absolute bottom-0">
+                                                                    <span className="leading-none mb-0.5">L/R</span>
+                                                                    <div className="w-0.5 h-2 bg-yellow-500 rounded-full" />
+                                                                </motion.div>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="absolute -bottom-8 w-full flex justify-center h-4">
+                                                            {isMid && (
+                                                                <motion.div layoutId={`pointer-mid-${rowIdx}`} className="text-xs font-bold text-blue-500 flex flex-col items-center absolute top-0">
+                                                                    <ArrowUp className="w-4 h-4" />
+                                                                    <span className="leading-none">mid</span>
+                                                                </motion.div>
+                                                            )}
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         );
@@ -216,7 +320,7 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({ traceStep }) => {
     // --- Generic Variable Rendering (Fallback & Locals) ---
     const renderValue = (key: string, value: any) => {
         // Skip variables that are already visualized in the main view to reduce clutter
-        if (isBinarySearch && ['arr', 'left', 'right', 'mid', 'low', 'high'].includes(key)) return null;
+        if (isBinarySearch && ['arr', 'left', 'right', 'mid', 'low', 'high', 'weights', 'days', 'target', 'ans', 'min_capacity', 'prefix', 'suffix', 'psum'].includes(key)) return null;
         if (isGraphAlgo && ['graph', 'visited'].includes(key)) return null;
 
         let parsedValue = value;
@@ -238,7 +342,7 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({ traceStep }) => {
             )
         }
 
-        return <span className="text-accent font-mono text-xs">{String(value)}</span>;
+        return <span className="text-foreground font-mono text-xs font-medium">{String(value)}</span>;
     };
 
     return (

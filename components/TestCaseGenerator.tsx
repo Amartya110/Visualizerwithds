@@ -27,14 +27,42 @@ const TestCaseGenerator: React.FC<TestCaseGeneratorProps> = ({ type, algo, onGen
             for (let i = 0; i < size; i++) arr.push(Math.floor(Math.random() * 100));
         }
 
-        // Generate Python code for verification
-        const code = `
+        // Generate Python code based on ALGORITHM
+        let code = "";
+
+        if (algo === "Binary Search") {
+            code = `
 # Generated Test Case (Size: ${size})
 arr = ${JSON.stringify(arr)}
 target = ${arr[Math.floor(Math.random() * arr.length)]}
 result = binary_search(arr, target)
 print(f"Index of {target}: {result}")
 `;
+        } else if (algo === "Prefix Sum") {
+            code = `
+# Generated Test Case (Size: ${size})
+arr = ${JSON.stringify(arr)}
+print(f"Original: {arr}")
+psum = prefix_sum(arr)
+# Random Query
+L = ${Math.floor(Math.random() * (size / 2))}
+R = ${Math.floor(size / 2 + Math.random() * (size / 2))}
+if R >= len(arr): R = len(arr) - 1
+if L > R: L, R = R, L
+print(f"Prefix Sum: {psum}")
+total = range_sum(psum, L, R)
+print(f"Sum[{L}, {R}]: {total}")
+`;
+        } else if (algo === "Binary Search (Answer)") {
+            code = `
+# Generated Test Case (Weights: ${size})
+weights = ${JSON.stringify(arr)}
+days = ${Math.max(1, Math.floor(size / 3))}
+min_capacity = ship_within_days(weights, days)
+print(f"Minimum Capacity: {min_capacity}")
+`;
+        }
+
         onGenerate(code);
     };
 

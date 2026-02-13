@@ -6,7 +6,9 @@ import CodeEditor from "@/components/CodeEditor";
 import VisualizerCanvas from "@/components/VisualizerCanvas";
 import ControlPanel from "@/components/ControlPanel";
 import TestCaseGenerator from "@/components/TestCaseGenerator";
+import NotesModal from "@/components/NotesModal"; // Import Modal
 import { ALGORITHM_TEMPLATES, AlgorithmType } from "@/lib/templates";
+import { BookOpen } from "lucide-react"; // Import Icon
 
 export default function Home() {
   const [selectedAlgo, setSelectedAlgo] = useState<AlgorithmType>("Binary Search");
@@ -17,6 +19,7 @@ export default function Home() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(800);
+  const [isNotesOpen, setIsNotesOpen] = useState(false); // Notes State
 
   // Helper to append/replace test case in code
   const handleTestCaseGenerate = (snippet: string) => {
@@ -122,6 +125,15 @@ export default function Home() {
               </button>
             ))}
           </div>
+
+          {/* Study Notes Button */}
+          <button
+            onClick={() => setIsNotesOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium transition-colors border border-primary/20"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            Study Notes
+          </button>
         </div>
 
         <div className="flex items-center gap-4">
@@ -166,7 +178,7 @@ export default function Home() {
             />
           </div>
           <TestCaseGenerator
-            type={selectedAlgo === "Binary Search" ? "array" : "graph"}
+            type={selectedAlgo.includes("Graph") ? "graph" : "array"}
             algo={selectedAlgo}
             onGenerate={handleTestCaseGenerate}
           />
@@ -208,6 +220,14 @@ export default function Home() {
         </div>
 
       </div>
+
+      {/* Notes Modal */}
+      <NotesModal
+        isOpen={isNotesOpen}
+        onClose={() => setIsNotesOpen(false)}
+        title={selectedAlgo}
+        content={(ALGORITHM_TEMPLATES[selectedAlgo] as any).notes || ""}
+      />
     </main>
   );
 }
