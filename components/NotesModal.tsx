@@ -18,7 +18,7 @@ const NotesModal: React.FC<NotesModalProps> = ({ isOpen, onClose, title, content
         if (!text) return <p className="text-muted-foreground italic">No notes available for this topic yet.</p>;
 
         const lines = text.split('\n');
-        const elements: JSX.Element[] = [];
+        const elements: React.ReactNode[] = [];
         let inCodeBlock = false;
         let codeBlockContent: string[] = [];
 
