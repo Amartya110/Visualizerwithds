@@ -61,7 +61,7 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({ traceStep }) => {
         traverse(root, 300, 40, 0);
 
         return (
-            <div className="flex flex-col gap-4 items-center p-4 bg-card/40 rounded-xl border border-border/50 shadow-sm w-full h-full overflow-auto custom-scrollbar">
+            <div className="flex flex-col gap-4 items-center p-4 bg-card/40 rounded-xl border border-border/50 shadow-sm w-max min-w-full h-full">
                 <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap sticky left-0">
                     Tree Visualization
                 </span>
@@ -115,7 +115,7 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({ traceStep }) => {
             const currentW = locals.w;
 
             return (
-                <div className="flex flex-col gap-4 items-center p-4 bg-card/40 rounded-xl border border-border/50 shadow-sm w-full h-full overflow-auto custom-scrollbar">
+                <div className="flex flex-col gap-4 items-center p-4 bg-card/40 rounded-xl border border-border/50 shadow-sm w-max min-w-full h-full">
                     <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap sticky left-0">
                         DP Table (Knapsack)
                     </span>
@@ -336,7 +336,7 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({ traceStep }) => {
         if (arraysToRender.length === 0 && !isBSAnswer) return null;
 
         return (
-            <div className="flex flex-col gap-6 items-center p-2 md:p-4 bg-card/40 rounded-xl border border-border/50 shadow-sm w-full overflow-x-auto custom-scrollbar">
+            <div className="flex flex-col gap-6 items-center p-2 md:p-4 bg-card/40 rounded-xl border border-border/50 shadow-sm w-max min-w-full">
                 <div className="flex items-center gap-2 mb-2 sticky left-0 shrink-0">
                     <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
                         {isBSAnswer ? "Binary Search on Answer" : "Array Visualization"}
@@ -616,7 +616,7 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({ traceStep }) => {
     };
 
     return (
-        <div className="w-full h-full flex flex-col gap-4 p-4 overflow-y-auto custom-scrollbar">
+        <div className="w-full h-full flex flex-col gap-4 p-4 pb-8 overflow-scroll custom-scrollbar">
             {/* Function Info */}
             <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
                 <span className="px-2 py-1 rounded bg-primary/10 text-primary border border-primary/20 text-xs font-mono">
@@ -650,7 +650,7 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({ traceStep }) => {
                                 className="bg-card/30 border border-border/40 rounded-lg p-3 backdrop-blur-sm flex flex-col gap-1"
                             >
                                 <span className="font-mono text-xs text-muted-foreground font-semibold line-clamp-1">{key}</span>
-                                <div className="overflow-x-auto custom-scrollbar">{content}</div>
+                                <div className="w-full">{content}</div>
                             </motion.div>
                         );
                     })}
