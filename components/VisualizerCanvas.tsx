@@ -122,7 +122,7 @@ const VisualizerCanvas: React.FC<VisualizerCanvasProps> = ({ traceStep }) => {
 
                 <div className="flex flex-col gap-8 w-full">
                     {arraysToRender.map((config, rowIdx) => {
-                        const arr = config.data;
+                        const arr = config.data as any[];
                         // For BS Answer, we don't show L/R pointers on the 'weights' array 
                         // because L/R refer to capacity, not index.
                         const showPointers = !isBSAnswer;
