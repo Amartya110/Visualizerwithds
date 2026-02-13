@@ -29,6 +29,10 @@ class CodeSubmission(BaseModel):
 def read_root():
     return {"message": "CodeHurdleVisualizer Backend"}
 
+@app.get("/api")
+def read_api_root():
+    return {"message": "CodeHurdleVisualizer Backend API Root"}
+
 @app.post("/simulate")
 def simulate_code(submission: CodeSubmission):
     if submission.language == "python":
@@ -46,6 +50,10 @@ def simulate_code(submission: CodeSubmission):
         return {"message": "C++ support coming soon"}
     else:
         raise HTTPException(status_code=400, detail="Unsupported language")
+
+@app.post("/api/simulate")
+def simulate_code_api(submission: CodeSubmission):
+    return simulate_code(submission)
 
 # Debug route to catch 404s and show what path was requested
 @app.api_route("/{path_name:path}", methods=["GET", "POST", "PUT", "DELETE"])
