@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from tracer_python import trace_python_code
 # from tracer_cpp import trace_cpp_code # implementation pending
 
-app = FastAPI(root_path="/api")
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -46,6 +46,11 @@ def simulate_code(submission: CodeSubmission):
         return {"message": "C++ support coming soon"}
     else:
         raise HTTPException(status_code=400, detail="Unsupported language")
+
+# Debug route to catch 404s and show what path was requested
+@app.api_route("/{path_name:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def catch_all(path_name: str):
+    return {"status": "caught_by_catch_all", "received_path": path_name, "message": "The backend is reachable but the specific route was not found."}
 
 if __name__ == "__main__":
     import uvicorn
