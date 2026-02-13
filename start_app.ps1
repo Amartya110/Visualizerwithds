@@ -1,5 +1,5 @@
 $frontend = Start-Process -FilePath "npm.cmd" -ArgumentList "run dev" -NoNewWindow -PassThru
-$backend = Start-Process -FilePath "uvicorn" -ArgumentList "backend.main:app --host 0.0.0.0 --port 8000 --reload" -NoNewWindow -PassThru
+$backend = Start-Process -FilePath "uvicorn" -ArgumentList "api.main:app --host 0.0.0.0 --port 8000 --reload" -NoNewWindow -PassThru
 
 Write-Host "CodeHurdle Visualizer Started!"
 Write-Host "Frontend: http://localhost:3000"
