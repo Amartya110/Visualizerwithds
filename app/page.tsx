@@ -1,233 +1,181 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import axios from "axios";
-import CodeEditor from "@/components/CodeEditor";
-import VisualizerCanvas from "@/components/VisualizerCanvas";
-import ControlPanel from "@/components/ControlPanel";
-import TestCaseGenerator from "@/components/TestCaseGenerator";
-import NotesModal from "@/components/NotesModal"; // Import Modal
-import { ALGORITHM_TEMPLATES, AlgorithmType } from "@/lib/templates";
-import { BookOpen } from "lucide-react"; // Import Icon
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { ArrowRight, Code2, Cpu, Zap, Layout, BookOpen, GitBranch, Layers } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
-export default function Home() {
-  const [selectedAlgo, setSelectedAlgo] = useState<AlgorithmType>("Binary Search");
-  const [code, setCode] = useState(ALGORITHM_TEMPLATES["Binary Search"].code);
-  const [inputVal, setInputVal] = useState("");
-  const [traces, setTraces] = useState<any[]>([]);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(800);
-  const [isNotesOpen, setIsNotesOpen] = useState(false); // Notes State
-
-  // Helper to append/replace test case in code
-  const handleTestCaseGenerate = (snippet: string) => {
-    const lines = code.split('\n');
-    let lastFuncLine = -1;
-
-    // Find last indented line (part of function)
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].startsWith('    ') || lines[i].startsWith('\t')) {
-        lastFuncLine = i;
-      }
-    }
-
-    // If we found a function body, keep up to that point.
-    // If not, just append.
-    let newCode = code;
-    if (lastFuncLine !== -1 && lastFuncLine < lines.length - 1) {
-      // Keep function + 1 empty line
-      newCode = lines.slice(0, lastFuncLine + 1).join('\n') + "\n" + snippet;
-    } else {
-      newCode = code + "\n" + snippet;
-    }
-
-    setCode(newCode);
-  };
-
-  // When algorithm selection changes, update code
-  const handleAlgoChange = (algo: AlgorithmType) => {
-    setSelectedAlgo(algo);
-    setCode(ALGORITHM_TEMPLATES[algo].code);
-    setTraces([]);
-    setCurrentStep(0);
-    setIsPlaying(false);
-  };
-
-  // Playback loop
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying && traces.length > 0) {
-      interval = setInterval(() => {
-        setCurrentStep((prev) => {
-          if (prev >= traces.length - 1) {
-            setIsPlaying(false);
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, playbackSpeed);
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying, traces, playbackSpeed]);
-
-  const handleRunCode = async () => {
-    setIsLoading(true);
-    setTraces([]);
-    setCurrentStep(0);
-    setIsPlaying(false);
-
-    try {
-      // Use relative path for Vercel (it handles rewrites), or env var
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "/api";
-      const response = await axios.post(`${apiUrl}/simulate`, {
-        code: code,
-        language: "python",
-        testcases: [inputVal || " "]
-      });
-
-      if (response.data.results && response.data.results.length > 0) {
-        setTraces(response.data.results[0].trace);
-        setIsPlaying(true);
-      }
-    } catch (error: any) {
-      console.error("Error executing code:", error);
-      const startMessage = error.response?.data?.detail || error.message || "Unknown error";
-      alert(`Execution Error: ${startMessage}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+export default function LandingPage() {
   return (
-    <main className="flex h-screen w-full flex-col bg-background text-foreground overflow-hidden font-sans">
-      {/* Header */}
-      <header className="flex items-center justify-between border-b border-border/40 px-6 py-3 bg-card/50 backdrop-blur-sm z-10">
-        <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20">
+      {/* Navbar */}
+      <nav className="border-b border-border/40 bg-background/50 backdrop-blur-md sticky top-0 z-50">
+        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-purple-600 shadow-lg shadow-primary/25" />
-            <h1 className="text-xl font-bold tracking-tight hidden md:block">CodeHurdle <span className="text-primary">Visualizer</span></h1>
+            <span className="text-xl font-bold tracking-tight">CodeHurdle</span>
           </div>
-
-          {/* Algorithm Selector */}
-          <div className="flex items-center gap-2 bg-secondary/50 p-1 rounded-lg border border-border/50">
-            {Object.keys(ALGORITHM_TEMPLATES).map((algo) => (
-              <button
-                key={algo}
-                onClick={() => handleAlgoChange(algo as AlgorithmType)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${selectedAlgo === algo
-                  ? "bg-background shadow-sm text-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                  }`}
-              >
-                {algo}
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+            <a href="#features" className="hover:text-primary transition-colors">Features</a>
+            <a href="#algorithms" className="hover:text-primary transition-colors">Algorithms</a>
+            <a href="/editor" className="hover:text-primary transition-colors">Playground</a>
+          </div>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <Link href="/editor">
+              <button className="px-5 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 hover:scale-105 active:scale-95 flex items-center gap-2">
+                Start Coding <ArrowRight className="w-4 h-4" />
               </button>
-            ))}
+            </Link>
           </div>
+        </div>
+      </nav>
 
-          {/* Study Notes Button */}
-          <button
-            onClick={() => setIsNotesOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium transition-colors border border-primary/20"
+      {/* Hero Section */}
+      <section className="relative pt-20 pb-32 overflow-hidden">
+        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px] pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/20 blur-[120px] rounded-full pointer-events-none opacity-50" />
+
+        <div className="container mx-auto px-6 text-center relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            <BookOpen className="w-3.5 h-3.5" />
-            Study Notes
-          </button>
-        </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/50 border border-secondary text-secondary-foreground text-xs font-medium mb-6">
+              <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+              Now with Graph Visualizations
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 text-foreground">
+              Master Algorithms <br /> with <span className="text-primary">Visualization</span>
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+              Stop staring at static code. Watch your algorithms run step-by-step, understand complex logic instantly, and debug with clarity.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/editor">
+                <button className="px-8 py-4 bg-primary text-primary-foreground rounded-full text-lg font-semibold hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 flex items-center gap-2">
+                  Launch Visualizer <Cpu className="w-5 h-5" />
+                </button>
+              </Link>
+              <a href="#features">
+                <button className="px-8 py-4 bg-secondary text-secondary-foreground rounded-full text-lg font-medium hover:bg-secondary/80 transition-all border border-border">
+                  Learn More
+                </button>
+              </a>
+            </div>
+          </motion.div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>Speed:</span>
-            <input
-              type="range"
-              min="100"
-              max="2000"
-              step="100"
-              value={2100 - playbackSpeed} // Invert so right is faster
-              onChange={(e) => setPlaybackSpeed(2100 - parseInt(e.target.value))}
-              className="w-24 accent-primary"
-            />
-          </div>
-          <button
-            onClick={handleRunCode}
-            disabled={isLoading}
-            className="px-4 py-2 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+          {/* Hero Visual */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="mt-20 relative mx-auto max-w-5xl rounded-xl border border-border/50 bg-card/50 backdrop-blur shadow-2xl overflow-hidden aspect-video group"
           >
-            {isLoading ? "Running..." : "Run Code"}
-          </button>
+            <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="p-4 border-b border-border/40 bg-muted/20 flex items-center gap-2">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                <div className="w-3 h-3 rounded-full bg-green-500/80" />
+              </div>
+              <div className="mx-auto text-xs text-muted-foreground font-mono bg-background/50 px-3 py-1 rounded-md">BinarySearch.py - Visualizer</div>
+            </div>
+            <div className="p-10 flex items-center justify-center h-full gap-8">
+              {/* Abstract representation of code and array */}
+              <div className="space-y-3 w-1/3 opacity-50 blur-[1px]">
+                <div className="h-2 w-3/4 bg-foreground/20 rounded" />
+                <div className="h-2 w-full bg-foreground/20 rounded" />
+                <div className="h-2 w-5/6 bg-foreground/20 rounded" />
+                <div className="h-2 w-2/3 bg-foreground/20 rounded" />
+              </div>
+              <div className="flex gap-2">
+                {[1, 3, 5, 7, 9].map((n, i) => (
+                  <div key={i} className={`w-12 h-12 rounded bg-card border border-border flex items-center justify-center font-mono font-bold ${i === 2 ? 'border-primary text-primary bg-primary/10 scale-110 shadow-lg shadow-primary/20' : 'text-muted-foreground'}`}>
+                    {n}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         </div>
-      </header>
+      </section>
 
-      {/* Main Content Grid */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 overflow-hidden">
-
-        {/* Left Panel: Code Editor */}
-        <div className="h-full border-r border-border/40 bg-card/30 flex flex-col overflow-y-auto custom-scrollbar">
-          <div className="p-3 border-b border-border/40 bg-muted/20 flex justify-between items-center sticky top-0 bg-background/95 backdrop-blur z-10">
-            <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500" /> Editor
-            </h2>
-            <span className="text-xs text-muted-foreground">{selectedAlgo}</span>
-          </div>
-          <div className="flex-1 p-0 overflow-hidden relative min-h-[400px]">
-            <CodeEditor
-              initialCode={code}
-              language="python"
-              onChange={(val) => setCode(val || "")}
-            />
-          </div>
-          <TestCaseGenerator
-            type={selectedAlgo.includes("Graph") ? "graph" : "array"}
-            algo={selectedAlgo}
-            onGenerate={handleTestCaseGenerate}
-          />
-        </div>
-
-        {/* Right Panel: Visualization & Controls */}
-        <div className="h-full lg:col-span-2 flex flex-col relative bg-gradient-to-br from-background via-background to-primary/5">
-          <div className="p-3 border-b border-border/40 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500" /> Visualization
-            </h2>
-
-            <ControlPanel
-              isPlaying={isPlaying}
-              onPlayPause={() => setIsPlaying(!isPlaying)}
-              onStepForward={() => setCurrentStep(Math.min(traces.length - 1, currentStep + 1))}
-              onStepBack={() => setCurrentStep(Math.max(0, currentStep - 1))}
-              onReset={() => { setIsPlaying(false); setCurrentStep(0); }}
-              progress={currentStep}
-              totalSteps={traces.length}
-            />
+      {/* Features Section */}
+      <section id="features" className="py-24 bg-muted/30 border-y border-border/40">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold tracking-tight mb-4">Everything you need to learn</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Our platform combines a powerful code editor with real-time visualizations to help you grasp concepts faster.
+            </p>
           </div>
 
-          <div className="flex-1 p-6 relative overflow-hidden flex items-start justify-center bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background to-background">
-            {traces.length > 0 ? (
-              <VisualizerCanvas traceStep={traces[currentStep]} />
-            ) : (
-              <div className="text-center space-y-4 m-auto">
-                <div className="w-24 h-24 mx-auto rounded-xl bg-primary/20 flex items-center justify-center animate-pulse">
-                  <div className="w-12 h-12 rounded-lg bg-primary shadow-[0_0_15px_rgba(124,58,237,0.5)]" />
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <Zap className="w-6 h-6 text-yellow-500" />,
+                title: "Real-time Execution",
+                desc: "See your code run line-by-line with instant visual feedback."
+              },
+              {
+                icon: <Layout className="w-6 h-6 text-blue-500" />,
+                title: "Interactive Canvas",
+                desc: "Manipulate arrays, graphs, and trees visually to understand data structures."
+              },
+              {
+                icon: <BookOpen className="w-6 h-6 text-purple-500" />,
+                title: "Study Notes",
+                desc: "Access curated notes, complexity analysis, and analogies for every algorithm."
+              },
+              {
+                icon: <Code2 className="w-6 h-6 text-green-500" />,
+                title: "Multi-Language",
+                desc: "Support for Python execution, with C++ and Java coming soon."
+              },
+              {
+                icon: <GitBranch className="w-6 h-6 text-orange-500" />,
+                title: "Algo Templates",
+                desc: "Start quickly with pre-built templates for BFS, DFS, Binary Search, and more."
+              },
+              {
+                icon: <Layers className="w-6 h-6 text-pink-500" />,
+                title: "Step Back & Forth",
+                desc: "Control time. Step forward to see changes, step back to understand mistakes."
+              }
+            ].map((feature, i) => (
+              <div key={i} className="p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-colors group">
+                <div className="w-12 h-12 rounded-lg bg-background border border-border flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  {feature.icon}
                 </div>
-                <p className="text-muted-foreground font-medium">Run code to visualize execution</p>
-                <p className="text-xs text-muted-foreground/60 max-w-xs mx-auto">
-                  Try selecting "DFS" or "BFS" from the top menu to see different algorithms in action.
+                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {feature.desc}
                 </p>
               </div>
-            )}
+            ))}
           </div>
         </div>
+      </section>
 
-      </div>
-
-      {/* Notes Modal */}
-      <NotesModal
-        isOpen={isNotesOpen}
-        onClose={() => setIsNotesOpen(false)}
-        title={selectedAlgo}
-        content={(ALGORITHM_TEMPLATES[selectedAlgo] as any).notes || ""}
-      />
-    </main>
+      {/* Footer */}
+      <footer className="py-12 border-t border-border/40 bg-background">
+        <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 rounded bg-gradient-to-br from-primary to-purple-600" />
+            <span className="font-bold tracking-tight">CodeHurdle</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            © 2024 CodeHurdle Visualizer. Built for students & developers.
+          </p>
+          <div className="flex gap-6 text-sm text-muted-foreground">
+            <a href="#" className="hover:text-foreground">Privacy</a>
+            <a href="#" className="hover:text-foreground">Terms</a>
+            <a href="#" className="hover:text-foreground">GitHub</a>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

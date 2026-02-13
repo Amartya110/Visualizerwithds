@@ -137,14 +137,14 @@ const NotesModal: React.FC<NotesModalProps> = ({ isOpen, onClose, title, content
                 className="relative w-full max-w-2xl bg-card border border-border rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 px-6 border-b border-border bg-muted/30">
+                <div className="flex items-center justify-between p-4 md:px-6 border-b border-border bg-muted/30">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-primary/10 rounded-xl border border-primary/10">
-                            <GraduationCap className="w-5 h-5 text-primary" />
+                        <div className="p-2 md:p-2.5 bg-primary/10 rounded-xl border border-primary/10">
+                            <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold">{title}</h2>
-                            <p className="text-xs text-muted-foreground">Study Notes & Key Concepts</p>
+                            <h2 className="text-base md:text-lg font-bold">{title}</h2>
+                            <p className="text-[10px] md:text-xs text-muted-foreground">Study Notes & Key Concepts</p>
                         </div>
                     </div>
                     <button
@@ -156,18 +156,18 @@ const NotesModal: React.FC<NotesModalProps> = ({ isOpen, onClose, title, content
                 </div>
 
                 {/* Content */}
-                <div className="p-6 overflow-y-auto custom-scrollbar bg-card/50">
+                <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar bg-card/50 text-sm md:text-base">
                     {parseContent(content)}
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 px-6 border-t border-border bg-muted/30 flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground italic">
+                <div className="p-3 md:p-4 px-4 md:px-6 border-t border-border bg-muted/30 flex justify-between items-center gap-2">
+                    <span className="text-[10px] md:text-xs text-muted-foreground italic hidden sm:block">
                         Tip: Try modifying the code to test these concepts!
                     </span>
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hover:scale-105 active:scale-95"
+                        className="w-full sm:w-auto px-6 py-2 bg-primary text-primary-foreground rounded-lg text-xs md:text-sm font-medium hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
                     >
                         Close Notes
                     </button>

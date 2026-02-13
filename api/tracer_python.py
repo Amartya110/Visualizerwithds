@@ -27,11 +27,12 @@ def trace_python_code(code: str, input_str: str):
             for k, v in frame.f_locals.items():
                 if not k.startswith('__'):
                     try:
-                        # Attempt to serialize to JSON to ensure it's safe
-                        # If complex object, stringify it
-                        json.dumps(v) 
-                        locals_copy[k] = v
+                        # Snapshot mutable objects (lists, dicts) by value
+                        # checks serializability AND creates a copy
+                        serialized = json.dumps(v)
+                        locals_copy[k] = json.loads(serialized)
                     except:
+                        # Fallback for non-serializable objects
                         locals_copy[k] = str(v)
             
             # For return events, capture the return value
